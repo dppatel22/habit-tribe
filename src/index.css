@@ -707,7 +707,8 @@ body {
   justify-content: center;
   gap: 12px;
   width: 100%;
-  padding: 14px 24px;
+  height: 52px; /* Fixed height for consistency */
+  padding: 0 24px; /* Padding adjusted since height is fixed */
   border: 1px solid var(--border-subtle);
   background: white;
   color: var(--text-primary);
@@ -723,6 +724,12 @@ body {
   border-color: var(--border-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
+}
+
+.google-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
 /* ── Loading Spinner ────────────────────── */
