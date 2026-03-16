@@ -1,0 +1,50 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Habits ──────────────────────────────────────────
+    match /habits/{habitId} {
+
+      // Owner can do anything with their own habit
+      allow create: if request.auth != null
+                    && request.resource.data.ownerId == request.auth.uid;
+
+      allow update, delete: if request.auth != null
+                            && resource.data.ownerId == request.auth.uid;
+
+      // Read: owner always, OR any member of the same group
+      allow read: if request.auth != null
+                  && (
+                    resource.data.ownerId == request.auth.uid
+                    || request.auth.uid in
+                       get(/databases/$(database)/documents/groups/$(resource.data.groupId)).data.memberIds
+                  );
+
+      // ── Completions sub-collection ────────────────────
+      match /completions/{dateStr} {
+        // Only the habit owner can read/write completions
+        allow read, write: if request.auth != null
+                           && get(/databases/$(database)/documents/habits/$(habitId)).data.ownerId == request.auth.uid;
+      }
+    }
+
+    // ── Groups ──────────────────────────────────────────
+    match /groups/{groupId} {
+      // Any authenticated user can create a group
+      allow create: if request.auth != null;
+
+      // Members can read
+      allow read: if request.auth != null
+                  && request.auth.uid in resource.data.memberIds;
+
+      // Members can update (e.g. add/remove members)
+      allow update: if request.auth != null
+                    && request.auth.uid in resource.data.memberIds;
+
+      // Only allow delete if requestor is a member
+      allow delete: if request.auth != null
+                    && request.auth.uid in resource.data.memberIds;
+    }
+  }
+}
